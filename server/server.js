@@ -7,23 +7,33 @@ dotenv.config();
 
 const app = express();
 
-// Standard middleware
-app.use(cors());
+// CORS setup supporting CLIENT_URL environment variables in production
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  credentials: true
+}));
+
 app.use(express.json());
 
-// Database connection established directly
+// Database connection with graceful retry loop (useful on Render/Atlas startup latency)
 const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/taskmanager';
-mongoose.connect(mongoURI)
-  .then(() => console.log('Successfully connected to MongoDB'))
-  .catch((err) => console.error('Failed to connect to MongoDB:', err.message));
 
-// Auth routes
+const connectDB = () => {
+  console.log('Connecting to MongoDB database...');
+  mongoose.connect(mongoURI)
+    .then(() => console.log('Successfully connected to MongoDB'))
+    .catch((err) => {
+      console.error('MongoDB connection error, retrying in 5 seconds:', err.message);
+      setTimeout(connectDB, 5000);
+    });
+};
+
+connectDB();
+
+// API Endpoint Routers
 app.use('/api/auth', require('./routes/authRoutes'));
-
-// Task routes (protected by auth inside taskRoutes)
 app.use('/api/tasks', require('./routes/taskRoutes'));
 
-// Basic health check route
 app.get('/', (req, res) => {
   res.send('Task Manager API is running...');
 });
