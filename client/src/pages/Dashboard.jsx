@@ -141,27 +141,27 @@ const Dashboard = () => {
   const doneTasks = filteredTasks.filter((t) => t.stage === 'Done');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col transition-colors duration-150">
       <Navbar />
 
       <main className="flex-grow max-w-5xl w-full mx-auto px-4 md:px-8 py-8 flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 tracking-tight">Workspace</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Track your ongoing progress and priorities.</p>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 tracking-tight">Workspace</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Track your ongoing progress and priorities.</p>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             <input
               type="text"
               placeholder="Search tasks..."
               aria-label="Search tasks"
-              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-550 w-full sm:w-48 bg-white"
+              className="px-3 py-1.5 border border-slate-300 dark:border-slate-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-550 w-full sm:w-48 bg-white dark:bg-slate-900 transition-colors"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             <button
               onClick={openCreateModal}
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer flex-shrink-0"
+              className="flex items-center gap-1.5 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer flex-shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create Task</span>
@@ -171,8 +171,8 @@ const Dashboard = () => {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-2">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-slate-650"></div>
-            <span className="text-xs text-slate-500 font-medium">Loading board...</span>
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 dark:border-slate-800 border-t-slate-650 dark:border-t-slate-400"></div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Loading board...</span>
           </div>
         ) : (
           <DndContext onDragEnd={handleDragEnd}>

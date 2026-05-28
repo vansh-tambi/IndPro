@@ -10,14 +10,16 @@ const StageSection = ({ title, tasks, stage, onEditTask, onDeleteTask, onStageCh
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col w-full border rounded-lg p-4 flex-1 min-h-[400px] transition-colors duration-155 ${
-        isOver ? 'bg-slate-100 border-slate-350 shadow-xs' : 'bg-slate-50 border-slate-200'
+      className={`flex flex-col w-full border rounded-lg p-4 flex-1 min-h-[400px] transition-colors duration-150 ${
+        isOver
+          ? 'bg-slate-100 dark:bg-slate-800 border-slate-350 dark:border-slate-700 shadow-xs'
+          : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80'
       }`}
     >
-      <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-200">
+      <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-800 text-sm">{title}</span>
-          <span className="text-[10px] font-bold bg-slate-200/80 text-slate-650 px-2 py-0.5 rounded-full">
+          <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">{title}</span>
+          <span className="text-[10px] font-bold bg-slate-200/80 dark:bg-slate-800 text-slate-650 dark:text-slate-400 px-2 py-0.5 rounded-full">
             {tasks.length}
           </span>
         </div>
@@ -35,7 +37,7 @@ const StageSection = ({ title, tasks, stage, onEditTask, onDeleteTask, onStageCh
             />
           ))
         ) : (
-          <div className="flex items-center justify-center h-24 border border-dashed border-slate-200 rounded-lg text-slate-400 text-xs text-center px-4">
+          <div className="flex items-center justify-center h-24 border border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-slate-400 dark:text-slate-500 text-xs text-center px-4">
             {stage === 'Todo' 
               ? 'No tasks yet' 
               : stage === 'In Progress' 

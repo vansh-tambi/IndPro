@@ -37,23 +37,23 @@ const Register = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
-      <div className="w-full max-w-md bg-white border border-slate-200 p-8 rounded-xl shadow-sm">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 px-4 transition-colors duration-150">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-xl shadow-sm transition-colors duration-150">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-slate-900">Create Account</h2>
-          <p className="text-sm text-slate-500 mt-1">Join TaskFlow to start tracking your tasks.</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Create Account</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Join TaskFlow to start tracking your tasks.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="name">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="name">
               Full Name
             </label>
             <input
               id="name"
               type="text"
               required
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-700 text-sm bg-white dark:bg-slate-800 transition-colors"
               placeholder="John Doe"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -61,14 +61,14 @@ const Register = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="email">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="email">
               Email Address
             </label>
             <input
               id="email"
               type="email"
               required
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-700 text-sm bg-white dark:bg-slate-800 transition-colors"
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +76,7 @@ const Register = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1" htmlFor="password">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1" htmlFor="password">
               Password
             </label>
             <input
@@ -84,7 +84,7 @@ const Register = () => {
               type="password"
               required
               minLength={6}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-950 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-550 focus:outline-none focus:ring-1 focus:ring-slate-500 dark:focus:ring-slate-400 focus:border-slate-500 dark:focus:border-slate-700 text-sm bg-white dark:bg-slate-800 transition-colors"
               placeholder="At least 6 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -94,15 +94,15 @@ const Register = () => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2 px-4 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-sm transition-colors duration-150 disabled:opacity-50 mt-2 cursor-pointer"
+            className="w-full py-2 px-4 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-medium rounded-lg text-sm transition-colors duration-150 disabled:opacity-50 mt-2 cursor-pointer"
           >
             {isSubmitting ? 'Registering...' : 'Register'}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-500">
+        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-slate-900 hover:underline">
+          <Link to="/login" className="font-semibold text-slate-900 dark:text-slate-100 hover:underline">
             Sign In
           </Link>
         </p>

@@ -19,11 +19,11 @@ const TaskItem = ({ task, onEdit, onDelete, onStageChange }) => {
       style={style}
       {...listeners}
       {...attributes}
-      className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow duration-150 flex flex-col justify-between h-[148px] w-full cursor-grab active:cursor-grabbing"
+      className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg p-4 shadow-sm hover:shadow dark:shadow-none transition-all duration-150 flex flex-col justify-between h-[148px] w-full cursor-grab active:cursor-grabbing"
     >
       <div className="overflow-hidden">
         <div className="flex justify-between items-start gap-2">
-          <h4 className="font-semibold text-slate-900 text-sm leading-tight truncate w-full" title={task.title}>
+          <h4 className="font-semibold text-slate-900 dark:text-slate-100 text-sm leading-tight truncate w-full" title={task.title}>
             {task.title}
           </h4>
           <div 
@@ -32,7 +32,7 @@ const TaskItem = ({ task, onEdit, onDelete, onStageChange }) => {
           >
             <button
               onClick={() => onEdit(task)}
-              className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer transition-colors"
+              className="text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 p-0.5 rounded cursor-pointer transition-colors"
               title="Edit Task"
               aria-label="Edit task"
             >
@@ -40,7 +40,7 @@ const TaskItem = ({ task, onEdit, onDelete, onStageChange }) => {
             </button>
             <button
               onClick={() => onDelete(task._id)}
-              className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer transition-colors"
+              className="text-slate-400 dark:text-slate-500 hover:text-rose-600 p-0.5 rounded cursor-pointer transition-colors"
               title="Delete Task"
               aria-label="Delete task"
             >
@@ -48,16 +48,16 @@ const TaskItem = ({ task, onEdit, onDelete, onStageChange }) => {
             </button>
           </div>
         </div>
-        <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed break-words">
-          {task.description || <span className="italic text-slate-300">No description</span>}
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2 leading-relaxed break-words">
+          {task.description || <span className="italic text-slate-300 dark:text-slate-600">No description</span>}
         </p>
       </div>
 
       <div 
-        className="flex items-center justify-between border-t border-slate-100 pt-2 mt-2"
+        className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2 mt-2"
         onPointerDown={(e) => e.stopPropagation()}
       >
-        <span className="text-[10px] text-slate-450 font-medium">
+        <span className="text-[10px] text-slate-450 dark:text-slate-500 font-medium">
           {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
         </span>
 
@@ -65,7 +65,7 @@ const TaskItem = ({ task, onEdit, onDelete, onStageChange }) => {
           value={task.stage}
           onChange={(e) => onStageChange(task._id, e.target.value)}
           aria-label="Change task stage"
-          className="text-xs bg-slate-50 border border-slate-200 text-slate-700 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
+          className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
         >
           <option value="Todo">To Do</option>
           <option value="In Progress">In Progress</option>

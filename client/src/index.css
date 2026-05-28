@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 }
@@ -14,7 +16,9 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
+
 
 /* Custom Scrollbars */
 ::-webkit-scrollbar {
@@ -34,3 +38,17 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #cbd5e1; /* slate-300 */
 }
+
+.dark body {
+  background-color: #020617; /* dark mode background - bg-slate-950 */
+  color: #f8fafc; /* dark mode text - text-slate-50 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155; /* slate-700 */
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569; /* slate-600 */
+}
+
