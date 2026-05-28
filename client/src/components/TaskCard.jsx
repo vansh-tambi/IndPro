@@ -22,6 +22,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
               onClick={() => onEdit(task)}
               className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer transition-colors"
               title="Edit Task"
+              aria-label="Edit task"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
@@ -29,13 +30,14 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
               onClick={() => onDelete(task._id)}
               className="text-slate-400 hover:text-rose-600 p-0.5 rounded cursor-pointer transition-colors"
               title="Delete Task"
+              aria-label="Delete task"
             >
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
         <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed break-words">
-          {task.description || <span className="italic text-slate-300">No description</span>}
+          {task.description || <span className="italic text-slate-350">No description</span>}
         </p>
       </div>
 
@@ -47,7 +49,8 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
         <select
           value={task.stage}
           onChange={(e) => onStageChange(task._id, e.target.value)}
-          className="text-xs bg-slate-55 border border-slate-200 text-slate-700 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
+          aria-label="Change task stage"
+          className="text-xs bg-slate-50 border border-slate-200 text-slate-700 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
         >
           <option value="Todo">To Do</option>
           <option value="In Progress">In Progress</option>

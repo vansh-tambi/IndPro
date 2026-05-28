@@ -49,6 +49,7 @@ const Dashboard = () => {
   };
 
   const closeModal = () => {
+    if (isSaving) return;
     setIsModalOpen(false);
     setCurrentTask(null);
     setTitle('');
@@ -74,7 +75,11 @@ const Dashboard = () => {
         setTasks((prev) => [created, ...prev]);
         toast.success('Task created.');
       }
-      closeModal();
+      setIsModalOpen(false);
+      setCurrentTask(null);
+      setTitle('');
+      setDescription('');
+      setStage('Todo');
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.message || 'Failed to save task.');
@@ -171,12 +176,17 @@ const Dashboard = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-xs" onClick={closeModal}></div>
+          <div 
+            className="absolute inset-0 bg-slate-900/10 backdrop-blur-xs" 
+            onClick={closeModal}
+          ></div>
 
           <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 shadow-md relative z-10">
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
+              disabled={isSaving}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer disabled:opacity-50"
+              aria-label="Close modal"
             >
               <X className="w-4 h-4" />
             </button>
@@ -194,8 +204,9 @@ const Dashboard = () => {
                   id="title"
                   type="text"
                   required
+                  disabled={isSaving}
                   placeholder="Task title"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm disabled:bg-slate-50 disabled:text-slate-500"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
@@ -208,8 +219,9 @@ const Dashboard = () => {
                 <textarea
                   id="description"
                   rows={3}
+                  disabled={isSaving}
                   placeholder="Optional details"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm resize-none"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm resize-none disabled:bg-slate-50 disabled:text-slate-500"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                 />
@@ -222,7 +234,8 @@ const Dashboard = () => {
                   </label>
                   <select
                     id="stage"
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm cursor-pointer"
+                    disabled={isSaving}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm cursor-pointer disabled:bg-slate-50 disabled:text-slate-500"
                     value={stage}
                     onChange={(e) => setStage(e.target.value)}
                   >
@@ -237,7 +250,8 @@ const Dashboard = () => {
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 transition-colors cursor-pointer"
+                  disabled={isSaving}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-55 text-xs font-medium text-slate-600 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   Cancel
                 </button>
