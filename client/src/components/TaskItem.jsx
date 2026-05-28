@@ -1,15 +1,24 @@
 import React from 'react';
+import { useDraggable } from '@dnd-kit/core';
 import { Edit2, Trash2 } from 'lucide-react';
 
-const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
-  const handleDragStart = (e) => {
-    e.dataTransfer.setData('text/plain', task._id);
-  };
+const TaskItem = ({ task, onEdit, onDelete, onStageChange }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: task._id,
+  });
+
+  const style = transform ? {
+    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    opacity: isDragging ? 0.6 : 1,
+    zIndex: isDragging ? 50 : 1,
+  } : undefined;
 
   return (
     <div
-      draggable
-      onDragStart={handleDragStart}
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
       className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow duration-150 flex flex-col justify-between h-[148px] w-full cursor-grab active:cursor-grabbing"
     >
       <div className="overflow-hidden">
@@ -17,7 +26,10 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
           <h4 className="font-semibold text-slate-900 text-sm leading-tight truncate w-full" title={task.title}>
             {task.title}
           </h4>
-          <div className="flex gap-1.5 flex-shrink-0">
+          <div 
+            className="flex gap-1.5 flex-shrink-0"
+            onPointerDown={(e) => e.stopPropagation()} 
+          >
             <button
               onClick={() => onEdit(task)}
               className="text-slate-400 hover:text-slate-700 p-0.5 rounded cursor-pointer transition-colors"
@@ -37,11 +49,14 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
           </div>
         </div>
         <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed break-words">
-          {task.description || <span className="italic text-slate-350">No description</span>}
+          {task.description || <span className="italic text-slate-300">No description</span>}
         </p>
       </div>
 
-      <div className="flex items-center justify-between border-t border-slate-100 pt-2 mt-2">
+      <div 
+        className="flex items-center justify-between border-t border-slate-100 pt-2 mt-2"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <span className="text-[10px] text-slate-450 font-medium">
           {new Date(task.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
         </span>
@@ -61,4 +76,4 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
   );
 };
 
-export default TaskCard;
+export default TaskItem;

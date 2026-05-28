@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { DndContext } from '@dnd-kit/core';
 import Navbar from '../components/Navbar';
-import TaskColumn from '../components/TaskColumn';
+import StageSection from '../components/StageSection';
+import EditTaskPopup from '../components/EditTaskPopup';
 import { getTasks, createTask, updateTask, deleteTask } from '../services/taskService';
-import { Plus, X } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
@@ -10,6 +12,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -116,27 +119,54 @@ const Dashboard = () => {
     }
   };
 
-  const todoTasks = tasks.filter((t) => t.stage === 'Todo');
-  const inProgressTasks = tasks.filter((t) => t.stage === 'In Progress');
-  const doneTasks = tasks.filter((t) => t.stage === 'Done');
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const taskId = active.id;
+    const targetStage = over.id;
+
+    const activeTask = tasks.find(t => t._id === taskId);
+    if (activeTask && activeTask.stage !== targetStage) {
+      handleStageChange(taskId, targetStage);
+    }
+  };
+
+  const filteredTasks = tasks.filter((t) =>
+    t.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const todoTasks = filteredTasks.filter((t) => t.stage === 'Todo');
+  const inProgressTasks = filteredTasks.filter((t) => t.stage === 'In Progress');
+  const doneTasks = filteredTasks.filter((t) => t.stage === 'Done');
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar />
 
       <main className="flex-grow max-w-5xl w-full mx-auto px-4 md:px-8 py-8 flex flex-col gap-6">
-        <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
           <div>
             <h2 className="text-lg font-bold text-slate-900 tracking-tight">Workspace</h2>
             <p className="text-xs text-slate-500 mt-0.5">Track your ongoing progress and priorities.</p>
           </div>
-          <button
-            onClick={openCreateModal}
-            className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Create Task</span>
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              aria-label="Search tasks"
+              className="px-3 py-1.5 border border-slate-300 rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-550 w-full sm:w-48 bg-white"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <button
+              onClick={openCreateModal}
+              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer flex-shrink-0"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Create Task</span>
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -145,128 +175,50 @@ const Dashboard = () => {
             <span className="text-xs text-slate-500 font-medium">Loading board...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-            <TaskColumn
-              title="To Do"
-              tasks={todoTasks}
-              stage="Todo"
-              onEditTask={openEditModal}
-              onDeleteTask={handleDelete}
-              onStageChange={handleStageChange}
-            />
-            <TaskColumn
-              title="In Progress"
-              tasks={inProgressTasks}
-              stage="In Progress"
-              onEditTask={openEditModal}
-              onDeleteTask={handleDelete}
-              onStageChange={handleStageChange}
-            />
-            <TaskColumn
-              title="Completed"
-              tasks={doneTasks}
-              stage="Done"
-              onEditTask={openEditModal}
-              onDeleteTask={handleDelete}
-              onStageChange={handleStageChange}
-            />
-          </div>
+          <DndContext onDragEnd={handleDragEnd}>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+              <StageSection
+                title="To Do"
+                tasks={todoTasks}
+                stage="Todo"
+                onEditTask={openEditModal}
+                onDeleteTask={handleDelete}
+                onStageChange={handleStageChange}
+              />
+              <StageSection
+                title="In Progress"
+                tasks={inProgressTasks}
+                stage="In Progress"
+                onEditTask={openEditModal}
+                onDeleteTask={handleDelete}
+                onStageChange={handleStageChange}
+              />
+              <StageSection
+                title="Completed"
+                tasks={doneTasks}
+                stage="Done"
+                onEditTask={openEditModal}
+                onDeleteTask={handleDelete}
+                onStageChange={handleStageChange}
+              />
+            </div>
+          </DndContext>
         )}
       </main>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-slate-900/10 backdrop-blur-xs" 
-            onClick={closeModal}
-          ></div>
-
-          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 shadow-md relative z-10">
-            <button
-              onClick={closeModal}
-              disabled={isSaving}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer disabled:opacity-50"
-              aria-label="Close modal"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="text-sm font-bold text-slate-900 mb-4">
-              {currentTask ? 'Edit Task' : 'New Task'}
-            </h3>
-
-            <form onSubmit={handleFormSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1" htmlFor="title">
-                  Title
-                </label>
-                <input
-                  id="title"
-                  type="text"
-                  required
-                  disabled={isSaving}
-                  placeholder="Task title"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm disabled:bg-slate-50 disabled:text-slate-500"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1" htmlFor="description">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  rows={3}
-                  disabled={isSaving}
-                  placeholder="Optional details"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm resize-none disabled:bg-slate-50 disabled:text-slate-500"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
-              </div>
-
-              {currentTask && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1" htmlFor="stage">
-                    Stage
-                  </label>
-                  <select
-                    id="stage"
-                    disabled={isSaving}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm cursor-pointer disabled:bg-slate-50 disabled:text-slate-500"
-                    value={stage}
-                    onChange={(e) => setStage(e.target.value)}
-                  >
-                    <option value="Todo">To Do</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Completed</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="flex gap-2 justify-end pt-3 border-t border-slate-100 mt-5">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  disabled={isSaving}
-                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-55 text-xs font-medium text-slate-600 transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  {isSaving ? 'Saving...' : 'Save'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <EditTaskPopup
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        onSubmit={handleFormSubmit}
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        stage={stage}
+        setStage={setStage}
+        isSaving={isSaving}
+        isEdit={!!currentTask}
+      />
     </div>
   );
 };
