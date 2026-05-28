@@ -1,92 +1,88 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Generate JWT token
+// Helper to sign JWTs
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, process.env.JWT_SECRET || 'supersecretkey', {
     expiresIn: '30d',
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
+// Register a new user
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ message: 'Please fill in all fields' });
+    // Simple validations
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: 'Please enter your name.' });
     }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ message: 'Please enter a valid email address' });
+    if (!email || !email.trim()) {
+      return res.status(400).json({ message: 'Please enter your email.' });
     }
-
-    // Validate password length
+    if (!password) {
+      return res.status(400).json({ message: 'Please enter a password.' });
+    }
     if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+      return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
     }
 
-    // Check if user exists
+    // Check duplicate user
     const userExists = await User.findOne({ email });
     if (userExists) {
-      return res.status(400).json({ message: 'User already exists' });
+      return res.status(400).json({ message: 'An account with this email already exists.' });
     }
 
-    // Create user
+    // Create user (triggers pre-save hashing hook)
     const user = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: email.trim(),
       password,
     });
 
-    if (user) {
-      return res.status(201).json({
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
-      });
-    } else {
-      return res.status(400).json({ message: 'Invalid user data received' });
-    }
-  } catch (error) {
-    console.error('Registration error:', error);
-    return res.status(500).json({ message: 'Server error during registration' });
+    return res.status(201).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } catch (err) {
+    console.error('Registration server error:', err.message);
+    return res.status(500).json({ message: 'Server error during registration. Please try again.' });
   }
 };
 
-// @desc    Authenticate a user
-// @route   POST /api/auth/login
-// @access  Public
+// Authenticate a user
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide email and password' });
+    // Simple validations
+    if (!email || !email.trim() || !password) {
+      return res.status(400).json({ message: 'Please enter both your email and password.' });
     }
 
-    // Find user
+    // Verify account existence
     const user = await User.findOne({ email });
-
-    // Verify user password
-    if (user && (await user.matchPassword(password))) {
-      return res.json({
-        _id: user.id,
-        name: user.name,
-        email: user.email,
-        token: generateToken(user._id),
-      });
-    } else {
-      return res.status(401).json({ message: 'Invalid email or password' });
+    if (!user) {
+      return res.status(401).json({ message: 'Incorrect email or password.' });
     }
-  } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ message: 'Server error during login' });
+
+    // Verify password match
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Incorrect email or password.' });
+    }
+
+    return res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      token: generateToken(user._id),
+    });
+  } catch (err) {
+    console.error('Login server error:', err.message);
+    return res.status(500).json({ message: 'Server error during login. Please try again.' });
   }
 };
 
