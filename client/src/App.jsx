@@ -22,18 +22,20 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Redirect any other path to dashboard */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         
         <Toaster
           position="top-right"
           toastOptions={{
-            duration: 4000,
+            duration: 3500,
             style: {
-              background: '#0f172a', /* slate-900 */
-              color: '#f8fafc', /* slate-50 */
-              border: '1px solid #1e293b', /* slate-800 */
+              background: '#ffffff',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              fontSize: '13px',
+              fontWeight: '500',
+              borderRadius: '8px'
             },
           }}
         />

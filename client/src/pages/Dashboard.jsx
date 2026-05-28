@@ -1,296 +1,227 @@
-import React, { useEffect, useState } from 'react';
-import api from '../utils/api';
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import TaskColumn from '../components/TaskColumn';
-import { Plus, X, BarChart2, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { getTasks, createTask, updateTask, deleteTask } from '../services/taskService';
+import { Plus, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
-  const [formData, setFormData] = useState({ title: '', description: '', stage: 'Todo' });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [stage, setStage] = useState('Todo');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const fetchTasks = async () => {
+  const fetchUserTasks = async () => {
     try {
-      setIsLoading(true);
-      const response = await api.get('/tasks');
-      setTasks(response.data);
-    } catch (error) {
-      console.error('Error fetching tasks:', error);
-      toast.error('Failed to retrieve tasks');
+      const data = await getTasks();
+      setTasks(data);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to retrieve tasks.');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
+    fetchUserTasks();
   }, []);
 
-  const handleOpenAddModal = () => {
+  const openCreateModal = () => {
     setCurrentTask(null);
-    setFormData({ title: '', description: '', stage: 'Todo' });
+    setTitle('');
+    setDescription('');
+    setStage('Todo');
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (task) => {
+  const openEditModal = (task) => {
     setCurrentTask(task);
-    setFormData({ title: task.title, description: task.description, stage: task.stage });
+    setTitle(task.title);
+    setDescription(task.description || '');
+    setStage(task.stage);
     setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
+  const closeModal = () => {
     setIsModalOpen(false);
     setCurrentTask(null);
-    setFormData({ title: '', description: '', stage: 'Todo' });
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setTitle('');
+    setDescription('');
+    setStage('Todo');
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title.trim()) {
-      toast.error('Task title is required');
+    if (!title.trim()) {
+      toast.error('Task title is required.');
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSaving(true);
     try {
       if (currentTask) {
-        // Edit task
-        const response = await api.put(`/tasks/${currentTask._id}`, formData);
-        setTasks((prev) => prev.map((t) => (t._id === currentTask._id ? response.data : t)));
-        toast.success('Task updated successfully');
+        const updated = await updateTask(currentTask._id, { title, description, stage });
+        setTasks((prev) => prev.map((t) => (t._id === currentTask._id ? updated : t)));
+        toast.success('Task updated.');
       } else {
-        // Add task
-        const response = await api.post('/tasks', formData);
-        setTasks((prev) => [response.data, ...prev]);
-        toast.success('Task created successfully');
+        const created = await createTask({ title, description, stage });
+        setTasks((prev) => [created, ...prev]);
+        toast.success('Task created.');
       }
-      handleCloseModal();
-    } catch (error) {
-      console.error('Error saving task:', error);
-      toast.error(error.response?.data?.message || 'Failed to save task');
+      closeModal();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to save task.');
     } finally {
-      setIsSubmitting(false);
+      setIsSaving(false);
     }
   };
 
-  const handleDeleteTask = async (id) => {
+  const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
-    
-    // Save previous state for rollback
-    const previousTasks = [...tasks];
-    // Optimistic UI update
-    setTasks((prev) => prev.filter((t) => t._id !== id));
 
     try {
-      await api.delete(`/tasks/${id}`);
-      toast.success('Task deleted successfully');
-    } catch (error) {
-      console.error('Error deleting task:', error);
-      setTasks(previousTasks); // Rollback
-      toast.error('Failed to delete task');
+      await deleteTask(id);
+      setTasks((prev) => prev.filter((t) => t._id !== id));
+      toast.success('Task removed.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete task.');
     }
   };
 
-  const handleMoveTask = async (id, newStage) => {
-    // Save previous state for rollback
+  const handleStageChange = async (id, newStage) => {
     const previousTasks = [...tasks];
-    // Optimistic UI update
     setTasks((prev) =>
       prev.map((t) => (t._id === id ? { ...t, stage: newStage } : t))
     );
 
     try {
-      await api.put(`/tasks/${id}`, { stage: newStage });
-    } catch (error) {
-      console.error('Error moving task:', error);
-      setTasks(previousTasks); // Rollback
-      toast.error('Failed to move task');
+      await updateTask(id, { stage: newStage });
+    } catch (err) {
+      console.error(err);
+      setTasks(previousTasks);
+      toast.error('Failed to move task.');
     }
   };
 
-  // Group tasks by stage
   const todoTasks = tasks.filter((t) => t.stage === 'Todo');
   const inProgressTasks = tasks.filter((t) => t.stage === 'In Progress');
   const doneTasks = tasks.filter((t) => t.stage === 'Done');
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col relative overflow-hidden pb-12">
-      {/* Background decoration blur */}
-      <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[150px] pointer-events-none"></div>
-      <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px] bg-violet-500/5 rounded-full blur-[150px] pointer-events-none"></div>
-
+    <div className="min-h-screen bg-slate-50 flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 md:px-12 mt-8 flex flex-col gap-8 relative z-10">
-        
-        {/* Top welcome and Add Button */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <main className="flex-grow max-w-5xl w-full mx-auto px-4 md:px-8 py-8 flex flex-col gap-6">
+        <div className="flex justify-between items-center pb-4 border-b border-slate-200">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white m-0">My Workspace</h1>
-            <p className="text-slate-400 text-sm mt-1">Organize, track, and complete your daily goals.</p>
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">Workspace</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Track your ongoing progress and priorities.</p>
           </div>
           <button
-            onClick={handleOpenAddModal}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 hover:scale-[1.02] active:scale-[0.98] text-white px-5 py-2.5 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-indigo-600/25 self-start sm:self-auto cursor-pointer"
+            onClick={openCreateModal}
+            className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-colors cursor-pointer"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-3.5 h-3.5" />
             <span>Create Task</span>
           </button>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-900 flex items-center justify-center text-slate-400 border border-slate-850">
-              <BarChart2 className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Total Tasks</p>
-              <h3 className="text-xl font-bold text-slate-200 mt-0.5">{tasks.length}</h3>
-            </div>
-          </div>
-          <div className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20">
-              <Circle className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">To Do</p>
-              <h3 className="text-xl font-bold text-slate-200 mt-0.5">{todoTasks.length}</h3>
-            </div>
-          </div>
-          <div className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-400 border border-amber-500/20">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">In Progress</p>
-              <h3 className="text-xl font-bold text-slate-200 mt-0.5">{inProgressTasks.length}</h3>
-            </div>
-          </div>
-          <div className="bg-slate-900/30 border border-slate-900 rounded-2xl p-4 flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 font-medium">Completed</p>
-              <h3 className="text-xl font-bold text-slate-200 mt-0.5">{doneTasks.length}</h3>
-            </div>
-          </div>
-        </div>
-
-        {/* Task Columns */}
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
-            <p className="text-slate-400 text-sm font-medium">Fetching tasks...</p>
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-2">
+            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-slate-650"></div>
+            <span className="text-xs text-slate-500 font-medium">Loading board...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
             <TaskColumn
               title="To Do"
               tasks={todoTasks}
-              stage="Todo"
-              colorClass="bg-indigo-500"
-              onAddTask={handleOpenAddModal}
-              onEditTask={handleOpenEditModal}
-              onDeleteTask={handleDeleteTask}
-              onMoveTask={handleMoveTask}
+              onEditTask={openEditModal}
+              onDeleteTask={handleDelete}
+              onStageChange={handleStageChange}
             />
             <TaskColumn
               title="In Progress"
               tasks={inProgressTasks}
-              stage="In Progress"
-              colorClass="bg-amber-500"
-              onAddTask={handleOpenAddModal}
-              onEditTask={handleOpenEditModal}
-              onDeleteTask={handleDeleteTask}
-              onMoveTask={handleMoveTask}
+              onEditTask={openEditModal}
+              onDeleteTask={handleDelete}
+              onStageChange={handleStageChange}
             />
             <TaskColumn
               title="Completed"
               tasks={doneTasks}
-              stage="Done"
-              colorClass="bg-emerald-500"
-              onAddTask={handleOpenAddModal}
-              onEditTask={handleOpenEditModal}
-              onDeleteTask={handleDeleteTask}
-              onMoveTask={handleMoveTask}
+              onEditTask={openEditModal}
+              onDeleteTask={handleDelete}
+              onStageChange={handleStageChange}
             />
           </div>
         )}
       </main>
 
-      {/* Task Creation / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={handleCloseModal}></div>
-          
-          {/* Modal Content */}
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative z-10 animate-in fade-in zoom-in-95 duration-200">
+          <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-xs" onClick={closeModal}></div>
+
+          <div className="bg-white border border-slate-200 rounded-lg w-full max-w-sm p-6 shadow-md relative z-10">
             <button
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+              onClick={closeModal}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
-            <h3 className="text-xl font-bold text-white mb-6">
-              {currentTask ? 'Edit Task' : 'Create New Task'}
+            <h3 className="text-sm font-bold text-slate-900 mb-4">
+              {currentTask ? 'Edit Task' : 'New Task'}
             </h3>
 
-            <form onSubmit={handleFormSubmit} className="space-y-5">
+            <form onSubmit={handleFormSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="title">
-                  Task Title
+                <label className="block text-xs font-semibold text-slate-700 mb-1" htmlFor="title">
+                  Title
                 </label>
                 <input
                   id="title"
-                  name="title"
                   type="text"
                   required
-                  placeholder="e.g. Design Landing Page"
-                  className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
-                  value={formData.title}
-                  onChange={handleInputChange}
+                  placeholder="Task title"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="description">
+                <label className="block text-xs font-semibold text-slate-700 mb-1" htmlFor="description">
                   Description
                 </label>
                 <textarea
                   id="description"
-                  name="description"
-                  rows={4}
-                  placeholder="Describe the task details..."
-                  className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none"
-                  value={formData.description}
-                  onChange={handleInputChange}
+                  rows={3}
+                  placeholder="Optional details"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm resize-none"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
               </div>
 
               {currentTask && (
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2" htmlFor="stage">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1" htmlFor="stage">
                     Stage
                   </label>
                   <select
                     id="stage"
-                    name="stage"
-                    className="w-full px-4 py-2.5 bg-slate-950/60 border border-slate-800/80 rounded-xl text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 cursor-pointer"
-                    value={formData.stage}
-                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-950 focus:outline-none focus:ring-1 focus:ring-slate-500 focus:border-slate-500 text-sm cursor-pointer"
+                    value={stage}
+                    onChange={(e) => setStage(e.target.value)}
                   >
                     <option value="Todo">To Do</option>
                     <option value="In Progress">In Progress</option>
@@ -299,24 +230,20 @@ const Dashboard = () => {
                 </div>
               )}
 
-              <div className="flex gap-3 justify-end pt-4 border-t border-slate-800/60 mt-6">
+              <div className="flex gap-2 justify-end pt-3 border-t border-slate-100 mt-5">
                 <button
                   type="button"
-                  onClick={handleCloseModal}
-                  className="px-5 py-2.5 rounded-xl border border-slate-800 hover:bg-slate-800 font-semibold text-slate-300 hover:text-slate-100 transition-colors cursor-pointer"
+                  onClick={closeModal}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-xs font-medium text-slate-600 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white font-semibold shadow-lg shadow-indigo-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                  disabled={isSaving}
+                  className="px-3.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shadow-sm transition-colors disabled:opacity-50 cursor-pointer"
                 >
-                  {isSubmitting ? (
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                  ) : (
-                    <span>{currentTask ? 'Save Changes' : 'Create Task'}</span>
-                  )}
+                  {isSaving ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </form>
