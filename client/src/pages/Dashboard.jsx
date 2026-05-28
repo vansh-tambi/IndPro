@@ -144,6 +144,7 @@ const Dashboard = () => {
             <TaskColumn
               title="To Do"
               tasks={todoTasks}
+              stage="Todo"
               onEditTask={openEditModal}
               onDeleteTask={handleDelete}
               onStageChange={handleStageChange}
@@ -151,6 +152,7 @@ const Dashboard = () => {
             <TaskColumn
               title="In Progress"
               tasks={inProgressTasks}
+              stage="In Progress"
               onEditTask={openEditModal}
               onDeleteTask={handleDelete}
               onStageChange={handleStageChange}
@@ -158,6 +160,7 @@ const Dashboard = () => {
             <TaskColumn
               title="Completed"
               tasks={doneTasks}
+              stage="Done"
               onEditTask={openEditModal}
               onDeleteTask={handleDelete}
               onStageChange={handleStageChange}

@@ -2,8 +2,16 @@ import React from 'react';
 import { Edit2, Trash2 } from 'lucide-react';
 
 const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('text/plain', task._id);
+  };
+
   return (
-    <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow duration-150 flex flex-col justify-between h-[148px] w-full">
+    <div
+      draggable
+      onDragStart={handleDragStart}
+      className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm hover:shadow transition-shadow duration-150 flex flex-col justify-between h-[148px] w-full cursor-grab active:cursor-grabbing"
+    >
       <div className="overflow-hidden">
         <div className="flex justify-between items-start gap-2">
           <h4 className="font-semibold text-slate-900 text-sm leading-tight truncate w-full" title={task.title}>
@@ -39,7 +47,7 @@ const TaskCard = ({ task, onEdit, onDelete, onStageChange }) => {
         <select
           value={task.stage}
           onChange={(e) => onStageChange(task._id, e.target.value)}
-          className="text-xs bg-slate-50 border border-slate-200 text-slate-700 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
+          className="text-xs bg-slate-55 border border-slate-200 text-slate-700 rounded px-1.5 py-0.5 focus:outline-none focus:ring-1 focus:ring-slate-400 cursor-pointer"
         >
           <option value="Todo">To Do</option>
           <option value="In Progress">In Progress</option>
